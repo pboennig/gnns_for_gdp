@@ -28,6 +28,6 @@ def create_files(year, k=15):
     baci.to_csv(OUTPUT_EDGE_INDEX.format(year), index=False)
     wb.to_csv(OUTPUT_NODE_FEATURES.format(year), index=False)
 
-for year in range(1995, 2019):
+for year in range(1995, 2020):
     print(year)
     create_files(year)
