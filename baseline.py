@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 from torch_geometric.nn import GCNConv
 from torch_geometric.loader import DataLoader
+import csv
 
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
@@ -53,13 +54,20 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 loader = DataLoader(data_list, batch_size=2, shuffle=True)
 
 model.train()
-for epoch in range(20000):
+losses = []
+save_interval = 100
+for epoch in range(2000):
     optimizer.zero_grad()
     data = next(iter(loader))
     out = model(data)
     loss = F.mse_loss(out, data.y)
-    if epoch % 1000 == 0:
-        print(epoch, loss)
+    if epoch % save_interval == 0:
+        losses.append(loss.item())
     loss.backward()
     optimizer.step()
+
+with open('results/baseline_train.csv', 'w+') as f:
+    writer = csv.writer(f)
+    for (i, loss) in enumerate(losses):
+        writer.writerow([i * save_interval, loss])
 
