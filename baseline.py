@@ -67,7 +67,7 @@ class GCN(torch.nn.Module):
 
 # train model
 model = GCN().double() # needs to be double precision
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=5e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
 loader = DataLoader(data_list, batch_size=2, shuffle=True)
 
 model.train()
