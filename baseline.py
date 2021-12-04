@@ -91,5 +91,12 @@ for epoch in range(n_epochs):
         optimizer.step()
     if epoch % save_interval == 0:
         losses.append((epoch, epoch_loss))
+
 loss_df = pd.DataFrame(losses, columns=['epoch', 'loss'])
 loss_df.to_csv("results/baseline_train.csv")
+
+model.eval()
+test_data = data_list[10]
+prediction_df = pd.DataFrame([test_data.y, model(test_data)], columns=['ground truth', 'prediction'])
+prediction_df.to_csv("results/prediction.csv")
+
