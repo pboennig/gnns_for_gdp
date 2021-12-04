@@ -43,11 +43,14 @@ data_list = [create_data(year) for year in range(FIRST_YEAR, LAST_YEAR)]
 
 # define model
 class GCN(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, num_features=3, hidden_size=16, target_size=1):
         super().__init__()
-        self.conv1 = GCNConv(3, 16)
-        self.conv2 = GCNConv(16, 16)
-        self.linear = nn.Linear(16, 1)
+        self.hidden_size = hidden_size
+        self.num_features = num_features
+        self.target_size = target_size
+        self.conv1 = GCNConv(self.num_features, self.hidden_size)
+        self.conv2 = GCNConv(self.hidden_size, self.hidden_size)
+        self.linear = nn.Linear(self.hidden_size, self.target_size)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
