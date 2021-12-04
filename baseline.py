@@ -66,7 +66,7 @@ class GCN(torch.nn.Module):
 # Hyperparameters
 batch_size = 4
 learning_rate = 1e-1
-n_epochs = 500
+n_epochs = 5
 save_interval = 10
 print_interval = 100
 
@@ -97,6 +97,6 @@ loss_df.to_csv("results/baseline_train.csv")
 
 model.eval()
 test_data = data_list[10]
-prediction_df = pd.DataFrame([test_data.y, model(test_data)], columns=['ground truth', 'prediction'])
+prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})
 prediction_df.to_csv("results/prediction.csv")
 
