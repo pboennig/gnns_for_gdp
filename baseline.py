@@ -36,6 +36,7 @@ def create_data(year):
     # load in input features
     x_df = pd.read_csv(f'output/X_NODE_{year}.csv')
     x_df['id'] = x_df['iso_code'].map(iso_code_to_id)
+    features = ['pop', 'cpi', 'emp']
     x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy())
     return Data(x=x, edge_index=edge_index, y=y)
 
@@ -59,6 +60,8 @@ class GCN(torch.nn.Module):
         x = F.relu(x)
         x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
+        x = F.dropout(x, training=self.training)
+        x = F.relu(x)
 
         return self.linear(x)
 
@@ -69,9 +72,10 @@ loader = DataLoader(data_list, batch_size=2, shuffle=True)
 
 model.train()
 losses = []
-save_interval = 100
+save_interval = 10
+print_interval = 100
 for epoch in range(2000):
-    if epoch % 10 == 0:
+    if epoch % print_interval == 0:
         print(f"{round((epoch + 1)/2000 * 100, 2)}%", end='\r')
         
     optimizer.zero_grad()
