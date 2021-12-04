@@ -6,10 +6,6 @@ import torch.nn as nn
 from torch_geometric.nn import GCNConv
 from torch_geometric.loader import DataLoader
 
-import csv
-import numpy as np
-import matplotlib.pyplot as plt
-
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
 FEATURES = ['pop', 'cpi', 'emp']
@@ -65,37 +61,35 @@ class GCN(torch.nn.Module):
 
         return self.linear(x)
 
+
 # train model
+# Hyperparameters
+batch_size = 4
+learning_rate = 1e-1
+n_epochs = 500
+save_interval = 10
+print_interval = 100
+
+
 model = GCN().double() # needs to be double precision
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
-loader = DataLoader(data_list, batch_size=2, shuffle=True)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+loader = DataLoader(data_list, batch_size=batch_size, shuffle=True)
 
 model.train()
 losses = []
-save_interval = 10
-print_interval = 100
-for epoch in range(2000):
+for epoch in range(n_epochs):
     if epoch % print_interval == 0:
-        print(f"{round((epoch + 1)/2000 * 100, 2)}%", end='\r')
+        print(f"{round((epoch + 1)/n_epochs * 100, 2)}%", end='\r')
         
-    optimizer.zero_grad()
-    data = next(iter(loader))
-    out = model(data)
-    loss = F.mse_loss(out, data.y)
+    epoch_loss = 0
+    for data in loader:
+        optimizer.zero_grad()
+        out = model(data)
+        loss = F.mse_loss(out, data.y)
+        epoch_loss += loss.item() 
+        loss.backward()
+        optimizer.step()
     if epoch % save_interval == 0:
-        losses.append(loss.item())
-    loss.backward()
-    optimizer.step()
-
-# write model results to disk
-with open('results/baseline_train.csv', 'w+') as f:
-    writer = csv.writer(f)
-    for (i, loss) in enumerate(losses):
-        writer.writerow([i * save_interval, loss])
-
-# plot results
-plt.figure()
-plt.plot(losses)
-plt.title("GNN Loss")
-plt.xlabel("Epoch (hundreds)")
-plt.show()
+        losses.append((epoch, epoch_loss))
+loss_df = pd.DataFrame(losses, columns=['epoch', 'loss'])
+loss_df.to_csv("results/baseline_train.csv")
