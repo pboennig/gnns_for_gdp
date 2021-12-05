@@ -3,7 +3,7 @@ import pandas as pd
 from torch_geometric.data import Data
 import torch.nn.functional as F
 import torch.nn as nn
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, GATConv
 from torch_geometric.loader import DataLoader
 
 FIRST_YEAR = 1995
@@ -39,14 +39,14 @@ def create_data(year):
 data_list = [create_data(year) for year in range(FIRST_YEAR, LAST_YEAR)]
 
 # define model
-class GCN(torch.nn.Module):
+class GDPModel(torch.nn.Module):
     def __init__(self, num_features=3, hidden_size=16, target_size=1):
         super().__init__()
         self.hidden_size = hidden_size
         self.num_features = num_features
         self.target_size = target_size
-        self.conv1 = GCNConv(self.num_features, self.hidden_size)
-        self.conv2 = GCNConv(self.hidden_size, self.hidden_size)
+        self.conv1 = GATConv(self.num_features, self.hidden_size)
+        self.conv2 = GATConv(self.hidden_size, self.hidden_size)
         self.linear = nn.Linear(self.hidden_size, self.target_size)
 
     def forward(self, data):
@@ -65,13 +65,13 @@ class GCN(torch.nn.Module):
 # train model
 # Hyperparameters
 batch_size = 4
-learning_rate = 1e-1
-n_epochs = 5
+learning_rate = 1e-3
+n_epochs = 500
 save_interval = 10
 print_interval = 100
 
 
-model = GCN().double() # needs to be double precision
+model = GDPModel().double() # needs to be double precision
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 loader = DataLoader(data_list, batch_size=batch_size, shuffle=True)
 
