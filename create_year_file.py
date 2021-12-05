@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import pycountry
 import warnings
 
@@ -11,6 +12,7 @@ WORLD_BANK_EMP_FILE = 'world_bank_gdp/emp/API_SL.UEM.TOTL.ZS_DS2_en_csv_v2_33584
 INPUT_NODE_FEATURES = 'output/X_NODE_{}.csv'
 OUTPUT_EDGE_INDEX = 'output/X_EDGE_{}.csv'
 OUTPUT_NODE_TARGETS = 'output/Y_{}.csv'
+NUM_PRODS = 10
 
 feature_datasets = [WORLD_BANK_POP_FILE, WORLD_BANK_CPI_FILE, WORLD_BANK_EMP_FILE]
 
@@ -18,7 +20,10 @@ def create_files(year, k=15):
     baci = pd.read_csv(BACI_FORMAT.format(year))
     baci = baci.groupby(['i','j']).sum() # sum together all categories of objects 
     baci = baci.sort_values(['v'], ascending=False).groupby(['i']).head(k).reset_index().filter(['i','j']) # keep only top k edges by export value
-        
+    print(baci.head())
+    edge_baci = create_edge_features(year) # add edge features consisting of q values for top 10 products for each edge.
+    print(edge_baci.head())
+
     def convert_row(row):
         country = pycountry.countries.get(alpha_3=row['Country Code'])
         if country is None:
@@ -63,6 +68,39 @@ def create_files(year, k=15):
     wb_feat = pd.concat(wb_feat, axis=1)
     wb_feat.to_csv(INPUT_NODE_FEATURES.format(year), index=False)       
     baci.to_csv(OUTPUT_EDGE_INDEX.format(year), index=False)
+
+def create_edge_features(year):
+    # baci = pd.read_csv(BACI_FORMAT.format(year))
+    # baci = baci.groupby(['i','j'])
+  
+    baci = pd.read_csv(BACI_FORMAT.format(year))
+    baci = baci.fillna(0) # some q values are missing, fill them with 0
+    # baci = baci.groupby(['i','j'])
+    top_products = baci.groupby(['k']).sum().sort_values(['v'],ascending=False).head(NUM_PRODS).reset_index()['k']
+    k_to_idx = {id: i for (i, id) in enumerate(top_products)}
+    
+    # baci = baci.sort_values(['v'], ascending=False)
+    feature_dict = {}
+    baci = baci[baci['k'].isin(top_products)].filter(['i', 'j', 'k', 'q'])
+    # print(baci.columns)
+    
+    d = {}
+    def update_dict(i, j, k, q):
+      i = int(i)
+      j = int(j)
+      if (i, j) not in d:
+        d[(i,j)] = [0] * NUM_PRODS
+      r = d[(i,j)] # get vec for a specific edge (i,j)
+      r[k_to_idx[k]] = q # update vec for edge (i,j) and product k
+      d[(i,j)] = r # rewrite the vec
+        
+
+    # baci['new'] = baci.apply(lambda r: update_dict(int(r['i']), int(r['j']), int(r['k']), r['q']), axis=1)
+    baci.apply(lambda r: update_dict(int(r['i']), int(r['j']), int(r['k']), r['q']), axis=1)
+    edge_features = np.vstack([d[(r['i'], r['j'])] for _, r in baci.iterrows()]) # create matrix of edge feature vecs we will write to the files.
+    feature_names = ['f'+ str(i) for i in range(NUM_PRODS)] # name our edge features 'f0,...f9'
+    baci[feature_names] = edge_features # write in the data to the baci dataframe
+    return baci
 
 if __name__ == "__main__":
     for year in range(1995, 2020):
