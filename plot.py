@@ -3,8 +3,9 @@ import pandas as pd
 
 sns.set_theme()
 
-loss_df = pd.read_csv('results/baseline_train.csv')
-loss_plot = sns.relplot(data=loss_df, x='epoch', y='loss', kind='line').set(title="Baseline training trajectory")
+loss_df = pd.read_csv('results/baseline_train.csv')[['epoch', 'train', 'val']]
+loss_df = loss_df.melt('epoch', var_name='loss_type', value_name='loss')
+loss_plot = sns.relplot(data=loss_df, x='epoch', y='loss', hue='loss_type', kind='line').set(title="Baseline training trajectory")
 loss_plot.fig.savefig('plots/baseline_loss.png', dpi=400)
 
 preds_df = pd.read_csv('results/prediction.csv')

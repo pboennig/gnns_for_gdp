@@ -3,12 +3,16 @@ import pandas as pd
 from torch_geometric.data import Data
 import torch.nn.functional as F
 import torch.nn as nn
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, GATConv
 from torch_geometric.loader import DataLoader
+import random
 
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
 FEATURES = ['pop', 'cpi', 'emp']
+NUM_TRAIN = 15
+NUM_VAL = 3
+NUM_TEST = 6
 
 def create_data(year):
     assert(year in range(FIRST_YEAR, LAST_YEAR + 1))
@@ -37,16 +41,19 @@ def create_data(year):
     return Data(x=x, edge_index=edge_index, y=y)
 
 data_list = [create_data(year) for year in range(FIRST_YEAR, LAST_YEAR)]
-
+random.shuffle(data_list)
+data_train = data_list[:NUM_TRAIN]
+data_val = data_list[NUM_TRAIN:NUM_TRAIN+NUM_VAL+1]
+data_test = data_list[NUM_TRAIN+NUM_VAL:]
 # define model
-class GCN(torch.nn.Module):
-    def __init__(self, num_features=3, hidden_size=16, target_size=1):
+class GDPModel(torch.nn.Module):
+    def __init__(self, num_features=3, hidden_size=32, target_size=1):
         super().__init__()
         self.hidden_size = hidden_size
         self.num_features = num_features
         self.target_size = target_size
-        self.conv1 = GCNConv(self.num_features, self.hidden_size)
-        self.conv2 = GCNConv(self.hidden_size, self.hidden_size)
+        self.conv1 = GATConv(self.num_features, self.hidden_size)
+        self.conv2 = GATConv(self.hidden_size, self.hidden_size)
         self.linear = nn.Linear(self.hidden_size, self.target_size)
 
     def forward(self, data):
@@ -61,27 +68,31 @@ class GCN(torch.nn.Module):
 
         return self.linear(x)
 
+def evaluate_model(model, data_val):
+    loss = 0.0
+    for data in data_val:
+        loss += F.mse_loss(model(data), data.y)
+    return loss.item()
+
 
 # train model
 # Hyperparameters
-batch_size = 4
-learning_rate = 1e-1
-n_epochs = 5
+batch_size = 3
+learning_rate = 5e-3
+n_epochs = 1000 
 save_interval = 10
-print_interval = 100
+print_interval = 50 
 
 
-model = GCN().double() # needs to be double precision
+model = GDPModel().double() # needs to be double precision
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-loader = DataLoader(data_list, batch_size=batch_size, shuffle=True)
+loader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
 
-model.train()
 losses = []
 for epoch in range(n_epochs):
-    if epoch % print_interval == 0:
-        print(f"{round((epoch + 1)/n_epochs * 100, 2)}%", end='\r')
         
     epoch_loss = 0
+    model.train()
     for data in loader:
         optimizer.zero_grad()
         out = model(data)
@@ -90,13 +101,16 @@ for epoch in range(n_epochs):
         loss.backward()
         optimizer.step()
     if epoch % save_interval == 0:
-        losses.append((epoch, epoch_loss))
+        val_loss = evaluate_model(model, data_val) 
+        if epoch % print_interval == 0:
+            print(f"Epoch: {epoch} Train loss: {epoch_loss / NUM_TRAIN} Validation loss: {evaluate_model(model, data_val) / NUM_VAL}")
+        losses.append((epoch, epoch_loss / NUM_TRAIN, evaluate_model(model, data_val)/ NUM_VAL))
 
-loss_df = pd.DataFrame(losses, columns=['epoch', 'loss'])
+loss_df = pd.DataFrame(losses, columns=['epoch', 'train', 'val'])
 loss_df.to_csv("results/baseline_train.csv")
 
 model.eval()
-test_data = data_list[10]
+test_data = data_test[0]
 prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})
 prediction_df.to_csv("results/prediction.csv")
 
