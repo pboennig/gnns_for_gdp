@@ -6,10 +6,6 @@ import torch.nn as nn
 from torch_geometric.nn import GCNConv
 from torch_geometric.loader import DataLoader
 
-import csv
-import numpy as np
-import matplotlib.pyplot as plt
-
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
 FEATURES = ['pop', 'cpi', 'emp']
@@ -36,6 +32,7 @@ def create_data(year):
     # load in input features
     x_df = pd.read_csv(f'output/X_NODE_{year}.csv')
     x_df['id'] = x_df['iso_code'].map(iso_code_to_id)
+    features = ['pop', 'cpi', 'emp']
     x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy())
     return Data(x=x, edge_index=edge_index, y=y)
 
@@ -43,11 +40,14 @@ data_list = [create_data(year) for year in range(FIRST_YEAR, LAST_YEAR)]
 
 # define model
 class GCN(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, num_features=3, hidden_size=16, target_size=1):
         super().__init__()
-        self.conv1 = GCNConv(3, 16)
-        self.conv2 = GCNConv(16, 16)
-        self.linear = nn.Linear(16, 1)
+        self.hidden_size = hidden_size
+        self.num_features = num_features
+        self.target_size = target_size
+        self.conv1 = GCNConv(self.num_features, self.hidden_size)
+        self.conv2 = GCNConv(self.hidden_size, self.hidden_size)
+        self.linear = nn.Linear(self.hidden_size, self.target_size)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
@@ -56,39 +56,47 @@ class GCN(torch.nn.Module):
         x = F.relu(x)
         x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
+        x = F.dropout(x, training=self.training)
+        x = F.relu(x)
 
         return self.linear(x)
 
+
 # train model
+# Hyperparameters
+batch_size = 4
+learning_rate = 1e-1
+n_epochs = 5
+save_interval = 10
+print_interval = 100
+
+
 model = GCN().double() # needs to be double precision
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=5e-4)
-loader = DataLoader(data_list, batch_size=2, shuffle=True)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+loader = DataLoader(data_list, batch_size=batch_size, shuffle=True)
 
 model.train()
 losses = []
-save_interval = 100
-for epoch in range(2000):
-    if epoch % 10 == 0:
-        print(f"{round((epoch + 1)/2000 * 100, 2)}%", end='\r')
+for epoch in range(n_epochs):
+    if epoch % print_interval == 0:
+        print(f"{round((epoch + 1)/n_epochs * 100, 2)}%", end='\r')
         
-    optimizer.zero_grad()
-    data = next(iter(loader))
-    out = model(data)
-    loss = F.mse_loss(out, data.y)
+    epoch_loss = 0
+    for data in loader:
+        optimizer.zero_grad()
+        out = model(data)
+        loss = F.mse_loss(out, data.y)
+        epoch_loss += loss.item() 
+        loss.backward()
+        optimizer.step()
     if epoch % save_interval == 0:
-        losses.append(loss.item())
-    loss.backward()
-    optimizer.step()
+        losses.append((epoch, epoch_loss))
 
-# write model results to disk
-with open('results/baseline_train.csv', 'w+') as f:
-    writer = csv.writer(f)
-    for (i, loss) in enumerate(losses):
-        writer.writerow([i * save_interval, loss])
+loss_df = pd.DataFrame(losses, columns=['epoch', 'loss'])
+loss_df.to_csv("results/baseline_train.csv")
 
-# plot results
-plt.figure()
-plt.plot(losses)
-plt.title("GNN Loss")
-plt.xlabel("Epoch (hundreds)")
-plt.show()
+model.eval()
+test_data = data_list[10]
+prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})
+prediction_df.to_csv("results/prediction.csv")
+

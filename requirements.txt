@@ -1,6 +1,7 @@
 numpy
 torch
 pandas
+seaborn
 
 torch-scatter 
 torch-sparse 
