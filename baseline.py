@@ -13,6 +13,8 @@ FEATURES = ['pop', 'cpi', 'emp']
 NUM_TRAIN = 15
 NUM_VAL = 3
 NUM_TEST = 6
+NUM_EDGE_FEATURES = 10
+EDGE_FEATURES = ['f'+str(i) for i in range(NUM_EDGE_FEATURES)]
 
 def create_data(year):
     assert(year in range(FIRST_YEAR, LAST_YEAR + 1))
@@ -27,7 +29,8 @@ def create_data(year):
     edges['i_id'] = edges['i'].map(iso_code_to_id)
     edges['j_id'] = edges['j'].map(iso_code_to_id)
     edge_index = torch.from_numpy(edges[['i_id', 'j_id']].to_numpy()).t()
-    
+    edge_attr = torch.from_numpy(edges[EDGE_FEATURES].to_numpy()) #extract the features from the dataset.
+
     # load in target values
     y_df = pd.read_csv(f'output/Y_{year}.csv')
     y_df['id'] = y_df['iso_code'].map(iso_code_to_id)
