@@ -19,6 +19,9 @@ EDGE_FEATURES = ['f'+str(i) for i in range(NUM_EDGE_FEATURES)]
 def create_data(year):
     assert(year in range(FIRST_YEAR, LAST_YEAR + 1))
     edges = pd.read_csv(f'output/X_EDGE_{year}.csv')
+    
+    if year == 1995:
+        print(edges)
 
     # generate map from iso_code to ids of form [0, ..., num_unique_iso_codes - 1]
     iso_codes = set(edges['i'])
@@ -30,6 +33,12 @@ def create_data(year):
     edges['j_id'] = edges['j'].map(iso_code_to_id)
     edge_index = torch.from_numpy(edges[['i_id', 'j_id']].to_numpy()).t()
     edge_attr = torch.from_numpy(edges[EDGE_FEATURES].to_numpy()) #extract the features from the dataset.
+    
+    # if year == 1995:
+    #     print('edges')
+    #     print(edge_attr)
+    #     print('wut')
+    # return
 
     # load in target values
     y_df = pd.read_csv(f'output/Y_{year}.csv')
@@ -41,7 +50,7 @@ def create_data(year):
     x_df['id'] = x_df['iso_code'].map(iso_code_to_id)
     features = ['pop', 'cpi', 'emp']
     x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy())
-    return Data(x=x, edge_index=edge_index,edge_attr=edge_attr y=y)
+    return Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y)
 
 data_list = [create_data(year) for year in range(FIRST_YEAR, LAST_YEAR)]
 random.shuffle(data_list)
@@ -55,12 +64,14 @@ class GDPModel(torch.nn.Module):
         self.hidden_size = hidden_size
         self.num_features = num_features
         self.target_size = target_size
-        self.conv1 = GATConv(self.num_features, self.hidden_size)
-        self.conv2 = GATConv(self.hidden_size, self.hidden_size)
+        self.conv1 = GATConv(self.num_features, self.hidden_size, edge_dim = NUM_EDGE_FEATURES)
+        self.conv2 = GATConv(self.hidden_size, self.hidden_size, edge_dim = NUM_EDGE_FEATURES)
         self.linear = nn.Linear(self.hidden_size, self.target_size)
 
     def forward(self, data):
-        x, edge_index = data.x, data.edge_index
+        x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
+
+        # print(edge_attr)
 
         x = self.conv1(x, edge_index)
         x = F.relu(x)

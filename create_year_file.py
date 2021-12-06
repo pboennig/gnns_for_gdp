@@ -22,8 +22,9 @@ def create_files(year, k=15):
     baci = baci.sort_values(['v'], ascending=False).groupby(['i']).head(k).reset_index().filter(['i','j']) # keep only top k edges by export value
     
     edge_baci = create_edge_features(year) # add edge features consisting of q values for top 10 products for each edge.
-    baci = pd.merge(baci, edge_baci, how='left') #merge the features with the edges we've filtered by expoort value above.
-    
+    baci = pd.merge(baci, edge_baci,how='left') #merge the features with the edges we've filtered by expoort value above.
+    baci = baci.fillna(0) # some values are missing, fill them with 0
+
     def convert_row(row):
         country = pycountry.countries.get(alpha_3=row['Country Code'])
         if country is None:
@@ -105,4 +106,4 @@ def create_edge_features(year):
 if __name__ == "__main__":
     for year in range(1995, 2020):
         print(f"Processing year {year}", end='\r')
-    create_files(year)
+        create_files(year)
