@@ -70,13 +70,13 @@ class GDPModel(torch.nn.Module):
 
     def forward(self, data):
         x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
+        # TODO: figure out if L2 normalizing edge features improve model.
+        # edge_attr = torch.nn.functional.normalize(edge_attr, p=2.0, dim=0, eps=1e-12, out=None)
 
-        # print(edge_attr)
-
-        x = self.conv1(x, edge_index)
+        x = self.conv1(x, edge_index, edge_attr=edge_attr)
         x = F.relu(x)
         x = F.dropout(x, training=self.training)
-        x = self.conv2(x, edge_index)
+        x = self.conv2(x, edge_index, edge_attr=edge_attr)
         x = F.dropout(x, training=self.training)
         x = F.relu(x)
 
