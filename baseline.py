@@ -41,7 +41,7 @@ def create_data(year):
     x_df['id'] = x_df['iso_code'].map(iso_code_to_id)
     features = ['pop', 'cpi', 'emp']
     x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy())
-    return Data(x=x, edge_index=edge_index, y=y)
+    return Data(x=x, edge_index=edge_index,edge_attr=edge_attr y=y)
 
 data_list = [create_data(year) for year in range(FIRST_YEAR, LAST_YEAR)]
 random.shuffle(data_list)
