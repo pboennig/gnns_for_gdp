@@ -20,10 +20,10 @@ def create_files(year, k=15):
     baci = pd.read_csv(BACI_FORMAT.format(year))
     baci = baci.groupby(['i','j']).sum() # sum together all categories of objects 
     baci = baci.sort_values(['v'], ascending=False).groupby(['i']).head(k).reset_index().filter(['i','j']) # keep only top k edges by export value
-    print(baci.head())
+    
     edge_baci = create_edge_features(year) # add edge features consisting of q values for top 10 products for each edge.
-    print(edge_baci.head())
-
+    baci = pd.merge(baci, edge_baci, how='left') #merge the features with the edges we've filtered by expoort value above.
+    
     def convert_row(row):
         country = pycountry.countries.get(alpha_3=row['Country Code'])
         if country is None:
