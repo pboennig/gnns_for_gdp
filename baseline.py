@@ -10,7 +10,7 @@ from util import *
 
 # define model
 class BaselineGDPModel(torch.nn.Module):
-    def __init__(self, num_features=3, hidden_size=32, target_size=1):
+    def __init__(self, num_features=3, hidden_size=64, target_size=1):
         super().__init__()
         self.hidden_size = hidden_size
         self.num_features = num_features

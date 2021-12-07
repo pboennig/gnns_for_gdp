@@ -12,8 +12,8 @@ def loss_plot(prefix):
     loss_plot.fig.savefig(f'plots/{prefix}_loss.png', dpi=400)
     plt.close(plt.gcf())
 
-def pred_plot(prefix, bounding_scaling_factor=.15):
-    preds_df = pd.read_csv(f'results/{prefix}_prediction.csv')
+def pred_plot(input_csv, title, out_file, bounding_scaling_factor=.15):
+    preds_df = pd.read_csv(input_csv)
     # make limits nicely surround points
     min_val = preds_df[['ground_truth','prediction']].min().values.min() * (1 - bounding_scaling_factor)
     max_val = preds_df[['ground_truth', 'prediction']].max().values.max() * (1 + bounding_scaling_factor)
@@ -22,8 +22,8 @@ def pred_plot(prefix, bounding_scaling_factor=.15):
     preds_plot.set(xscale='log', yscale='log') # large spread in values
     preds_plot.set(xlabel='actual GDP', ylabel='predicted GDP') # label axes
     preds_plot.set(xlim=lim, ylim=lim) # limits must be same to match intution that y=x is correct
-    preds_plot.set(title=f"{prefix} prediction error")
-    preds_plot.fig.savefig(f'plots/{prefix}_prediction_error.png', dpi=400)
+    preds_plot.set(title=title)
+    preds_plot.fig.savefig(out_file, dpi=400)
     plt.close(plt.gcf())
 
 def hyperparams_plot(model_type):
@@ -36,8 +36,9 @@ def hyperparams_plot(model_type):
 
 
 for model_type in ['baseline', 'model']:
-    hyperparams_plot(model_type)
+    #hyperparams_plot(model_type)
     for lr in get_sweep_range():
-        loss_plot(f"{model_type}_{lr}_100")
-        pred_plot(f"{model_type}_{lr}_100")
+        #loss_plot(f"{model_type}_{lr}_100")
+        for e in range(0, 1001, 100):
+            pred_plot(f"results/{model_type}_{lr}_{e}_out_of_1000_prediction.csv", f"Prediction after {e} epochs", f"plots/{model_type}_{lr}_{e}.png")
 

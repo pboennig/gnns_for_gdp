@@ -69,4 +69,4 @@ def get_data():
     return (data_train, data_val, data_test)
 
 def get_sweep_range():
-    return np.linspace(1e-4, 1e-3, num=5)
+    return np.linspace(1e-3, 1e-1, num=3)
