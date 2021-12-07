@@ -4,6 +4,7 @@ import pandas as pd
 from torch_geometric.data import Data
 import random
 import torch.nn.functional as F
+import numpy as np
 
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
@@ -49,6 +50,7 @@ def create_data(year):
     x_df = pd.read_csv(f'output/X_NODE_{year}.csv')
     x_df['id'] = x_df['iso_code'].map(iso_code_to_id)
     features = ['pop', 'cpi', 'emp']
+    x_df.loc[:,features] = (x_df.loc[:,features] - x_df.loc[:,features].mean()) / (x_df.loc[:,features].std())
     x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy())
     return Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y)
 
@@ -65,3 +67,6 @@ def get_data():
     data_val = data_list[NUM_TRAIN:NUM_TRAIN+NUM_VAL+1]
     data_test = data_list[NUM_TRAIN+NUM_VAL:]
     return (data_train, data_val, data_test)
+
+def get_sweep_range():
+    return np.linspace(1e-3, 1e-1, num=3)
