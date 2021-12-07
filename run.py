@@ -15,10 +15,11 @@ data_train, data_val, data_test = get_data()
 # Hyperparameters
 batch_size = 3
 learning_rate = 5e-3
-n_epochs = 1000 
+n_epochs = 100 
 save_interval = 10
 print_interval = 50 
 
+print("training baseline...")
 model = BaselineGDPModel().double() # needs to be double precision
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 loader = DataLoader(data_train, batch_size=batch_size, shuffle=True)
@@ -48,6 +49,7 @@ test_data = data_test[0]
 prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})
 prediction_df.to_csv("results/baseline_prediction.csv")
 
+print("training real model...")
 model = GDPModel().double() # needs to be double precision
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 loader = DataLoader(data_train, batch_size=batch_size, shuffle=True)

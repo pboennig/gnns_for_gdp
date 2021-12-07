@@ -3,6 +3,7 @@ import torch
 import pandas as pd
 from torch_geometric.data import Data
 import random
+import torch.nn.functional as F
 
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
@@ -21,9 +22,6 @@ def create_data(year):
     '''
     assert(year in range(FIRST_YEAR, LAST_YEAR + 1))
     edges = pd.read_csv(f'output/X_EDGE_{year}.csv')
-    
-    if year == 1995:
-        print(edges)
 
     # generate map from iso_code to ids of form [0, ..., num_unique_iso_codes - 1]
     iso_codes = set(edges['i'])
