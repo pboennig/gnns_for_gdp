@@ -4,6 +4,7 @@ import pandas as pd
 from torch_geometric.data import Data
 import random
 import torch.nn.functional as F
+import numpy as np
 
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
@@ -66,3 +67,6 @@ def get_data():
     data_val = data_list[NUM_TRAIN:NUM_TRAIN+NUM_VAL+1]
     data_test = data_list[NUM_TRAIN+NUM_VAL:]
     return (data_train, data_val, data_test)
+
+def get_sweep_range():
+    return np.linspace(1e-4, 1e-3, num=5)

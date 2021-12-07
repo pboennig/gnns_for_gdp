@@ -54,7 +54,7 @@ def train(name_prefix, model, batch_size, learning_rate, n_epochs, save_interval
 
 baseline_loss = []
 model_loss = []
-for lr in np.linspace(1e-4, 1e-3, num=5):
+for lr in get_sweep_range():
     model = BaselineGDPModel().double() # needs to be double precision
     baseline_val_loss = train("baseline", model, batch_size, lr, n_epochs, save_interval, print_interval)
     baseline_loss.append((lr, baseline_val_loss))
