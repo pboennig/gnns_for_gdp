@@ -22,6 +22,13 @@ def pred_plot(model_type, bounding_scaling_factor=.15):
     preds_plot.set(title=f"{model_type} prediction error")
     preds_plot.fig.savefig(f'plots/{model_type}_prediction_error.png', dpi=400)
 
+def hyperparams_plot(model_type):
+    sweep_df = pd.read_csv(f'results/{model_type}_hyperparams.csv', index_col=0)
+    sweep_plot = sns.relplot(data=sweep_df, x='lr', y='val_loss')
+    sweep_plot.set(title=f"{model_type} hyperparameter sweep")
+    sweep_plot.set(ylim=(1e23, 1e25))
+    sweep_plot.fig.savefig(f'plots/{model_type}_sweep.png', dpi=400)
+
+
 for model_type in ['baseline', 'model']:
-    loss_plot(model_type)
-    pred_plot(model_type)
+    hyperparams_plot(model_type)

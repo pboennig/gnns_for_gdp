@@ -42,12 +42,12 @@ def train(name_prefix, model, batch_size, learning_rate, n_epochs, save_interval
             losses.append((epoch, epoch_loss / NUM_TRAIN, evaluate_model(model, data_val)/ NUM_VAL))
 
     loss_df = pd.DataFrame(losses, columns=['epoch', 'train', 'val'])
-    loss_df.to_csv("results/{name_prefix}_train.csv")
+    loss_df.to_csv(f"results/{name_prefix}_{learning_rate}_{n_epochs}_train.csv")
 
     model.eval()
     test_data = data_test[0]
     prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})
-    prediction_df.to_csv(f"results/{name_prefix}_prediction.csv")
+    prediction_df.to_csv(f"results/{name_prefix}_{learning_rate}_{n_epochs}_prediction.csv")
     torch.save(model.state_dict(), f"models/{name_prefix}_{learning_rate}_{n_epochs}.pt")
     return evaluate_model(model, data_val)
 

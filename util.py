@@ -49,6 +49,7 @@ def create_data(year):
     x_df = pd.read_csv(f'output/X_NODE_{year}.csv')
     x_df['id'] = x_df['iso_code'].map(iso_code_to_id)
     features = ['pop', 'cpi', 'emp']
+    x_df.loc[:,features] = (x_df.loc[:,features] - x_df.loc[:,features].mean()) / (x_df.loc[:,features].std())
     x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy())
     return Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y)
 
