@@ -54,6 +54,7 @@ def train(name_prefix, hyperparams):
             model.eval()
             prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})
             prediction_df.to_csv(f"results/{name_prefix}_{learning_rate}_{epoch}_out_of_{n_epochs}_prediction.csv")
+            save_gt_vs_prediction(model, data_train, f"results/preds/{name_prefix}_{learning_rate}_out_of_{n_epochs}.csv" )
             torch.save(model.state_dict(), f"models/{name_prefix}_{learning_rate}_{epoch}_out_of_{n_epochs}.pt")
 
     prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})

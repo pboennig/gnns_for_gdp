@@ -18,9 +18,10 @@ def pred_plot(input_csv, title, out_file, bounding_scaling_factor=.15):
     preds_df = pd.read_csv(input_csv)
     # make limits nicely surround points
     max_val = preds_df[['ground_truth', 'prediction']].max().values.max() * (1 + bounding_scaling_factor)
+    print(max_val, end="")
     lim = (0, max_val)
     preds_plot = sns.relplot(data=preds_df, x='ground_truth', y='prediction')
-    plt.subplots_adjust(left=0.2) # prevent x-label from getting cut off
+    plt.subplots_adjust(left=0.1, top=0.9) # prevent x-label and title from getting cut off
     #preds_plot.set(xscale='log', yscale='log') # large spread in values
     preds_plot.set(xlabel='actual log_GDP', ylabel='predicted log_GDP') # label axes
     preds_plot.set(xlim=lim, ylim=lim) # limits must be same to match intution that y=x is correct
@@ -52,8 +53,10 @@ def compare_baseline_to_model(baseline_csv, model_csv):
     loss_plot.fig.savefig(f'plots/comparison_loss.png', dpi=400)
 
 
+'''
 compare_baseline_to_model(f"results/baseline_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}_train.csv",\
     f"results/model_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}_train.csv")
+'''
 
 for model_type in ['baseline', 'model']:
     for e in range(0, hyperparams['n_epochs'], hyperparams['save_model_interval']):

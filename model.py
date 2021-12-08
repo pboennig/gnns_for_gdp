@@ -30,4 +30,4 @@ class GDPModel(torch.nn.Module):
         x = self.convs[-1](x, edge_index, edge_attr=edge_attr)
         x = self.linear(x)
 
-        return F.softplus(x) 
+        return F.relu(x) 

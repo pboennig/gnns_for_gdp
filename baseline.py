@@ -26,4 +26,4 @@ class BaselineGDPModel(torch.nn.Module):
             x = F.dropout(x, training=self.training)
         x = self.convs[-1](x, edge_index) 
         x = self.linear(x)
-        return F.softplus(x) # since we know Y = log_gdp > 0, enforce via softplus
+        return F.relu(x) # since we know Y = log_gdp > 0, enforce via relu

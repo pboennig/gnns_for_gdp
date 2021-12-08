@@ -9,7 +9,7 @@ import numpy as np
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
 FEATURES = ['pop', 'cpi', 'emp']
-NUM_TRAIN = 3 
+NUM_TRAIN = 15 
 NUM_VAL = 3
 NUM_TEST = 6
 NUM_EDGE_FEATURES = 10
@@ -38,23 +38,21 @@ def create_data(year):
     y_df = pd.read_csv(f'output/Y_{year}.csv')
     y_df['id'] = y_df['iso_code'].map(iso_code_to_id)
     y = torch.from_numpy(y_df.sort_values('id')[f'{year+1}'].to_numpy(np.float32)).unsqueeze(1)# get labels as tensor
-    y = y.log()
+    y = y.log() # log scale since spread of GDP is large
     
     # load in input features
     x_df = pd.read_csv(f'output/X_NODE_{year}.csv')
     x_df['id'] = x_df['iso_code'].map(iso_code_to_id)
     features = ['pop', 'cpi', 'emp']
     x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy(np.float32))
+    x = (x - x.mean(axis=0)) / (x.std(axis=0))  # scale and center data
     return Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y)
 
-def evaluate_model(model, data_val):
+def evaluate_model(model, data_iter):
     '''
     Accumulate MSE over a data list or loader.
     '''
-    loss = 0.0
-    for data in data_val:
-        loss += F.mse_loss(model(data), data.y)
-    return loss.item()
+    return sum([F.mse_loss(model(data), data.y).item() for data in data_iter])
 
 def get_data():
     '''
@@ -67,3 +65,10 @@ def get_data():
     data_val = data_list[NUM_TRAIN:NUM_TRAIN+NUM_VAL+1]
     data_test = data_list[NUM_TRAIN+NUM_VAL:]
     return (data_train, data_val, data_test)
+
+
+def save_gt_vs_prediction(model, data_iter, fname):
+    ground_truth = torch.stack([data.y for data in data_iter])
+    preds = torch.stack([model(data) for data in data_iter]) 
+    prediction_df = pd.DataFrame({"ground_truth": ground_truth.detach().numpy(), "prediction": preds.detach().numpy()})
+    prediction_df.to_csv(fname)
