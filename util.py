@@ -73,4 +73,4 @@ def get_sweep_range():
     '''
     The range of learning rates to sweep over. Used both in plotting and in run.py.
     '''
-    return np.linspace(5e-2, 1e0, num=3)
+    return np.linspace(5e-2, 1e-1, num=2)
