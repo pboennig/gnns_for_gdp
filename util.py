@@ -32,7 +32,7 @@ def create_data(year):
     edges['i_id'] = edges['i'].map(iso_code_to_id)
     edges['j_id'] = edges['j'].map(iso_code_to_id)
     edge_index = torch.from_numpy(edges[['i_id', 'j_id']].to_numpy(np.long)).t()
-    edge_attr = torch.from_numpy(edges[EDGE_FEATURES].to_numpy()) #extract the features from the dataset.
+    edge_attr = torch.from_numpy(edges[EDGE_FEATURES].to_numpy(np.float32)) #extract the features from the dataset.
     
     # load in target values
     y_df = pd.read_csv(f'output/Y_{year}.csv')

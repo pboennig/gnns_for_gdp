@@ -48,12 +48,14 @@ def compare_baseline_to_model(baseline_csv, model_csv):
     new_names = {'val': 'baseline', 'model_val': 'model'}
     loss_df['model type'] = loss_df['model type'].map(new_names)
     loss_plot = sns.relplot(data=loss_df, x='epoch', y='validation MSE', hue='model type', kind='line').set(title=f"Edge features improve performance")
+    loss_plot.set(yscale='log')
     plt.tight_layout()
     loss_plot.fig.savefig(f'plots/comparison_loss.png', dpi=400)
 
 
-#compare_baseline_to_model(f'results/baseline_0.05_{Hyperparams.n_epochs}_train.csv', f'results/model_0.05_{Hyperparams.n_epochs}_train.csv')
-loss_plot(f"baseline_{hyperparams['learning_rate']}_1000")
+compare_baseline_to_model(f"results/baseline_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}_train.csv",\
+    f"results/model_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}_train.csv")
+'''
 for model_type in ['baseline', 'model']:
     for e in range(0, hyperparams['n_epochs'], hyperparams['save_model_interval']):
         pred_plot(f"results/{model_type}_{hyperparams['learning_rate']}_{e}_out_of_{hyperparams['n_epochs']}_prediction.csv",\
@@ -61,6 +63,7 @@ for model_type in ['baseline', 'model']:
         f"plots/{model_type}_{hyperparams['n_epochs']}_{e}.png")
     pred_plot(f"results/{model_type}_{hyperparams['learning_rate']}_prediction.csv",\
         f"{model_type} prediction after {hyperparams['n_epochs']} epochs", f"plots/{model_type}_{hyperparams['learning_rate']}.png")
+'''
 
 
 

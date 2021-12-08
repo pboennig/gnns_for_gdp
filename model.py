@@ -27,6 +27,6 @@ class GDPModel(torch.nn.Module):
             x = conv(x, edge_index, edge_attr=edge_attr)
             x = F.relu(x)
             x = F.dropout(x, training=self.training)
-        x = self.conv[-1](x, edge_index, edge_attr=edge_attr)
+        x = self.convs[-1](x, edge_index, edge_attr=edge_attr)
 
         return self.linear(x)
