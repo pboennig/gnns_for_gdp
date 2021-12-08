@@ -41,5 +41,5 @@ for lr in get_sweep_range():
         #loss_plot(f"{model_type}_{lr}_10000")
         for e in [0, 250]:
             pred_plot(f"results/{model_type}_{lr}_{e}_out_of_500_prediction.csv", f"Prediction after {e} epochs with learning rate {lr}", f"plots/{model_type}_{lr}_{e}.png")
-        pred_plot(f"results/{model_type}_{lr}_prediction.csv", f"Prediction after 500 epochs with learning rate {lr}", f"plots/{model_type}_{lr}.png")
+        pred_plot(f"results/{model_type}_{lr}_prediction.csv", f"{model_type} prediction after 500 epochs with learning rate {lr}", f"plots/{model_type}_{lr}.png")
 
