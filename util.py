@@ -35,12 +35,6 @@ def create_data(year):
     edge_index = torch.from_numpy(edges[['i_id', 'j_id']].to_numpy()).t()
     edge_attr = torch.from_numpy(edges[EDGE_FEATURES].to_numpy()) #extract the features from the dataset.
     
-    # if year == 1995:
-    #     print('edges')
-    #     print(edge_attr)
-    #     print('wut')
-    # return
-
     # load in target values
     y_df = pd.read_csv(f'output/Y_{year}.csv')
     y_df['id'] = y_df['iso_code'].map(iso_code_to_id)
@@ -55,12 +49,19 @@ def create_data(year):
     return Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y)
 
 def evaluate_model(model, data_val):
+    '''
+    Accumulate MSE over a data list or loader.
+    '''
     loss = 0.0
     for data in data_val:
         loss += F.mse_loss(model(data), data.y)
     return loss.item()
 
 def get_data():
+    '''
+    Generate data_lists for train, val, and test. These lists can be either loaded into data_loaders
+    or indexed directly. 
+    '''
     data_list = [create_data(year) for year in range(FIRST_YEAR, LAST_YEAR)]
     random.shuffle(data_list)
     data_train = data_list[:NUM_TRAIN]
@@ -69,4 +70,7 @@ def get_data():
     return (data_train, data_val, data_test)
 
 def get_sweep_range():
-    return np.linspace(1e-3, 1e-1, num=3)
+    '''
+    The range of learning rates to sweep over. Used both in plotting and in run.py.
+    '''
+    return np.linspace(5e-2, 1e0, num=3)

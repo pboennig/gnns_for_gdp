@@ -35,10 +35,11 @@ def hyperparams_plot(model_type):
     plt.close(plt.gcf())
 
 
-for model_type in ['baseline', 'model']:
+for lr in get_sweep_range():
+    for model_type in ['baseline', 'model']:
     #hyperparams_plot(model_type)
-    for lr in get_sweep_range():
-        #loss_plot(f"{model_type}_{lr}_100")
-        for e in range(0, 1001, 100):
-            pred_plot(f"results/{model_type}_{lr}_{e}_out_of_1000_prediction.csv", f"Prediction after {e} epochs", f"plots/{model_type}_{lr}_{e}.png")
+        #loss_plot(f"{model_type}_{lr}_10000")
+        for e in [0, 250]:
+            pred_plot(f"results/{model_type}_{lr}_{e}_out_of_500_prediction.csv", f"Prediction after {e} epochs with learning rate {lr}", f"plots/{model_type}_{lr}_{e}.png")
+        pred_plot(f"results/{model_type}_{lr}_prediction.csv", f"Prediction after 500 epochs with learning rate {lr}", f"plots/{model_type}_{lr}.png")
 
