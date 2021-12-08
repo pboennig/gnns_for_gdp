@@ -8,7 +8,6 @@ from torch_geometric.loader import DataLoader
 import random
 from util import *
 
-# define model
 class BaselineGDPModel(torch.nn.Module):
     def __init__(self, num_features=3, hidden_size=32, target_size=1):
         super().__init__()
@@ -26,4 +25,5 @@ class BaselineGDPModel(torch.nn.Module):
             x = F.relu(x)
             x = F.dropout(x, training=self.training)
         x = self.convs[-1](x, edge_index) 
-        return self.linear(x)
+        x = self.linear(x)
+        return F.softplus(x) # since we know Y = log_gdp > 0, enforce via softplus

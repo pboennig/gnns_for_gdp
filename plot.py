@@ -17,13 +17,12 @@ def pred_plot(input_csv, title, out_file, bounding_scaling_factor=.15):
     print(f"Making rediction plot at {out_file}...", end='')
     preds_df = pd.read_csv(input_csv)
     # make limits nicely surround points
-    min_val = preds_df[['ground_truth','prediction']].min().values.min() * (1 - bounding_scaling_factor)
     max_val = preds_df[['ground_truth', 'prediction']].max().values.max() * (1 + bounding_scaling_factor)
-    lim = (min_val, max_val)
+    lim = (0, max_val)
     preds_plot = sns.relplot(data=preds_df, x='ground_truth', y='prediction')
     plt.subplots_adjust(left=0.2) # prevent x-label from getting cut off
     #preds_plot.set(xscale='log', yscale='log') # large spread in values
-    preds_plot.set(xlabel='actual GDP', ylabel='predicted GDP') # label axes
+    preds_plot.set(xlabel='actual log_GDP', ylabel='predicted log_GDP') # label axes
     preds_plot.set(xlim=lim, ylim=lim) # limits must be same to match intution that y=x is correct
     preds_plot.set(title=title)
     #plt.tight_layout()
@@ -55,7 +54,7 @@ def compare_baseline_to_model(baseline_csv, model_csv):
 
 compare_baseline_to_model(f"results/baseline_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}_train.csv",\
     f"results/model_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}_train.csv")
-'''
+
 for model_type in ['baseline', 'model']:
     for e in range(0, hyperparams['n_epochs'], hyperparams['save_model_interval']):
         pred_plot(f"results/{model_type}_{hyperparams['learning_rate']}_{e}_out_of_{hyperparams['n_epochs']}_prediction.csv",\
@@ -63,7 +62,6 @@ for model_type in ['baseline', 'model']:
         f"plots/{model_type}_{hyperparams['n_epochs']}_{e}.png")
     pred_plot(f"results/{model_type}_{hyperparams['learning_rate']}_prediction.csv",\
         f"{model_type} prediction after {hyperparams['n_epochs']} epochs", f"plots/{model_type}_{hyperparams['learning_rate']}.png")
-'''
 
 
 

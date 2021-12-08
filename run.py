@@ -64,9 +64,11 @@ def train(name_prefix, hyperparams):
     return evaluate_model(model, data_val)
 
 
+print("Training baseline...")
 model = BaselineGDPModel()
 baseline_val_loss = train("baseline", hyperparams)
 
+print("Training model...")
 model = GDPModel() # needs to be double precision
 model_val_loss = train("model", hyperparams)
 
