@@ -9,12 +9,11 @@ import numpy as np
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
 FEATURES = ['pop', 'cpi', 'emp']
-NUM_TRAIN = 15
+NUM_TRAIN = 3 
 NUM_VAL = 3
 NUM_TEST = 6
 NUM_EDGE_FEATURES = 10
 EDGE_FEATURES = ['f'+str(i) for i in range(NUM_EDGE_FEATURES)]
-
 
 def create_data(year):
     '''
@@ -32,20 +31,20 @@ def create_data(year):
     # load in edge index
     edges['i_id'] = edges['i'].map(iso_code_to_id)
     edges['j_id'] = edges['j'].map(iso_code_to_id)
-    edge_index = torch.from_numpy(edges[['i_id', 'j_id']].to_numpy()).t()
+    edge_index = torch.from_numpy(edges[['i_id', 'j_id']].to_numpy(np.long)).t()
     edge_attr = torch.from_numpy(edges[EDGE_FEATURES].to_numpy()) #extract the features from the dataset.
     
     # load in target values
     y_df = pd.read_csv(f'output/Y_{year}.csv')
     y_df['id'] = y_df['iso_code'].map(iso_code_to_id)
-    y = torch.from_numpy(y_df.sort_values('id')[f'{year+1}'].to_numpy()).unsqueeze(1) # get labels as tensor
+    y = torch.from_numpy(y_df.sort_values('id')[f'{year+1}'].to_numpy(np.float32)).unsqueeze(1)# get labels as tensor
+    y = y.log()
     
     # load in input features
     x_df = pd.read_csv(f'output/X_NODE_{year}.csv')
     x_df['id'] = x_df['iso_code'].map(iso_code_to_id)
     features = ['pop', 'cpi', 'emp']
-    x_df.loc[:,features] = (x_df.loc[:,features] - x_df.loc[:,features].mean()) / (x_df.loc[:,features].std())
-    x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy())
+    x = torch.from_numpy(x_df.sort_values('id').loc[:,features].to_numpy(np.float32))
     return Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y)
 
 def evaluate_model(model, data_val):
@@ -68,9 +67,3 @@ def get_data():
     data_val = data_list[NUM_TRAIN:NUM_TRAIN+NUM_VAL+1]
     data_test = data_list[NUM_TRAIN+NUM_VAL:]
     return (data_train, data_val, data_test)
-
-def get_sweep_range():
-    '''
-    The range of learning rates to sweep over. Used both in plotting and in run.py.
-    '''
-    return np.linspace(5e-2, 1e-1, num=2)
