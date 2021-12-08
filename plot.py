@@ -18,11 +18,12 @@ def pred_plot(input_csv, title, out_file, bounding_scaling_factor=.15):
     min_val = preds_df[['ground_truth','prediction']].min().values.min() * (1 - bounding_scaling_factor)
     max_val = preds_df[['ground_truth', 'prediction']].max().values.max() * (1 + bounding_scaling_factor)
     lim = (min_val, max_val)
-    preds_plot = sns.relplot(data=preds_df, x='ground_truth', y='prediction')
+    preds_plot = sns.relplot(data=preds_df, x='ground_truth', y='prediction', height=6, aspect=1)
     preds_plot.set(xscale='log', yscale='log') # large spread in values
     preds_plot.set(xlabel='actual GDP', ylabel='predicted GDP') # label axes
     preds_plot.set(xlim=lim, ylim=lim) # limits must be same to match intution that y=x is correct
     preds_plot.set(title=title)
+    plt.tight_layout()
     preds_plot.fig.savefig(out_file, dpi=400)
     plt.close(plt.gcf())
 
@@ -40,6 +41,6 @@ for lr in get_sweep_range():
     #hyperparams_plot(model_type)
         #loss_plot(f"{model_type}_{lr}_10000")
         for e in [0, 250]:
-            pred_plot(f"results/{model_type}_{lr}_{e}_out_of_500_prediction.csv", f"Prediction after {e} epochs with learning rate {lr}", f"plots/{model_type}_{lr}_{e}.png")
-        pred_plot(f"results/{model_type}_{lr}_prediction.csv", f"{model_type} prediction after 500 epochs with learning rate {lr}", f"plots/{model_type}_{lr}.png")
+            pred_plot(f"results/{model_type}_{lr}_{e}_out_of_500_prediction.csv", f"{model_type} prediction after {e} epochs", f"plots/{model_type}_{lr}_{e}.png")
+        pred_plot(f"results/{model_type}_{lr}_prediction.csv", f"{model_type} prediction after 500 epochs", f"plots/{model_type}_{lr}.png")
 
