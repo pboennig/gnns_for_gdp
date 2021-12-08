@@ -35,7 +35,22 @@ def hyperparams_plot(model_type):
     sweep_plot.fig.savefig(f'plots/{model_type}_sweep.png', dpi=400)
     plt.close(plt.gcf())
 
+def compare_baseline_to_model(baseline_csv, model_csv):
+    baseline_loss = pd.read_csv(baseline_csv, index_col=0)
+    model_loss = pd.read_csv(model_csv, index_col=0)
+    new_df = baseline_loss[['epoch', 'val']]
+    new_df['model_val'] = model_loss['val']
+    loss_df = pd.melt(new_df, id_vars=['epoch'], value_vars=['val','model_val'], var_name='model type', value_name='validation MSE')
+    new_names = {'val': 'baseline', 'model_val': 'model'}
+    loss_df['model type'] = loss_df['model type'].map(new_names)
+    loss_plot = sns.relplot(data=loss_df, x='epoch', y='validation MSE', hue='model type', kind='line').set(title=f"Edge features improve performance")
+    plt.tight_layout()
+    loss_plot.fig.savefig(f'plots/comparison_loss.png', dpi=400)
 
+
+compare_baseline_to_model('results/baseline_0.05_500_train.csv', 'results/model_0.05_500_train.csv')
+
+'''
 for lr in get_sweep_range():
     for model_type in ['baseline', 'model']:
     #hyperparams_plot(model_type)
@@ -43,4 +58,7 @@ for lr in get_sweep_range():
         for e in [0, 250]:
             pred_plot(f"results/{model_type}_{lr}_{e}_out_of_500_prediction.csv", f"{model_type} prediction after {e} epochs", f"plots/{model_type}_{lr}_{e}.png")
         pred_plot(f"results/{model_type}_{lr}_prediction.csv", f"{model_type} prediction after 500 epochs", f"plots/{model_type}_{lr}.png")
+'''
+
+
 
