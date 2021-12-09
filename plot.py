@@ -32,16 +32,14 @@ def pred_plot(preds_df, title, out_file, max_x, max_y, square=True):
     '''
     print(f"Making prediction plot at {out_file}...", end='')
     plt.yscale('linear') # re-set to linear axis (data is already log-ed)
-    plt.plot([0, max_x], [0, max_x], color='red', zorder=1) # place behind points
     plt.scatter(preds_df['ground_truth'], preds_df['prediction'], s=.7, zorder=2) # place in front of line
     plt.subplots_adjust(left=0.15, top=0.9) # prevent x-label and title from getting cut off
     plt.xlabel('actual log_GDP')
     plt.ylabel('predicted log_GDP') # label axes
-    if square:
-        max_x = max(max_x, max_y)
-        max_y = max_x
-    plt.xlim((0, max_x))
-    plt.ylim((0, max_y))
+    print("Correlation", np.polyfit(preds_df[['ground_truth']].values.squeeze(), preds_df[['prediction']].values.squeeze(), 1)[0], "...", end="")
+    l, r = plt.xlim()
+    plt.ylim((l, r))
+    plt.plot([l, r], [l, r], color='red', zorder=1) # place behind points
     plt.title(title)
     plt.savefig(out_file, dpi=400)
     plt.close(plt.gcf())
