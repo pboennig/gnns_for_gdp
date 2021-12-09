@@ -45,23 +45,20 @@ def train(name_prefix, hyperparams):
             optimizer.step()
         if epoch % save_loss_interval == 0:
             val_loss = evaluate_model(model, data_val) / NUM_VAL
-            train_loss = epoch_loss / NUM_TRAIN
+            train_loss = epoch_loss / NUM_TRAIN * batch_size
             if epoch % print_interval == 0:
                 print("Epoch: {} Train loss: {:.2e} Validation loss: {:.2e}".format(epoch, train_loss, val_loss))
-            losses.append((epoch, epoch_loss / NUM_TRAIN, evaluate_model(model, data_val)/ NUM_VAL))
+            losses.append((epoch, train_loss, val_loss))
         if epoch % save_model_interval == 0:
             # save predictions for plotting
             model.eval()
-            prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})
-            prediction_df.to_csv(f"results/{name_prefix}_{learning_rate}_{epoch}_out_of_{n_epochs}_prediction.csv")
-            save_gt_vs_prediction(model, data_train, f"results/preds/{name_prefix}_{learning_rate}_out_of_{n_epochs}.csv" )
+            save_gt_vs_prediction(model, data_train, preds_file(name_prefix, epoch))
             torch.save(model.state_dict(), f"models/{name_prefix}_{learning_rate}_{epoch}_out_of_{n_epochs}.pt")
 
-    prediction_df = pd.DataFrame({'ground_truth': test_data.y.detach().numpy()[:,0], 'prediction': model(test_data).detach().numpy()[:,0]})
-    prediction_df.to_csv(f"results/{name_prefix}_{learning_rate}_prediction.csv")
+    save_gt_vs_prediction(model, data_train, preds_file(name_prefix, n_epochs) )
     torch.save(model.state_dict(), f"models/{name_prefix}_{learning_rate}.pt")
     loss_df = pd.DataFrame(losses, columns=['epoch', 'train', 'val'])
-    loss_df.to_csv(f"results/{name_prefix}_{learning_rate}_{n_epochs}_train.csv")
+    loss_df.to_csv(f"results/losses/{name_prefix}_{learning_rate}_{n_epochs}.csv")
     return evaluate_model(model, data_val)
 
 

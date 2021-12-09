@@ -5,6 +5,7 @@ from torch_geometric.data import Data
 import random
 import torch.nn.functional as F
 import numpy as np
+from hyperparams import hyperparams
 
 FIRST_YEAR = 1995
 LAST_YEAR = 2019
@@ -33,6 +34,7 @@ def create_data(year):
     edges['j_id'] = edges['j'].map(iso_code_to_id)
     edge_index = torch.from_numpy(edges[['i_id', 'j_id']].to_numpy(np.long)).t()
     edge_attr = torch.from_numpy(edges[EDGE_FEATURES].to_numpy(np.float32)) #extract the features from the dataset.
+    edge_attr = (edge_attr - edge_attr.mean(axis=0)) / (edge_attr.std(axis=0))
     
     # load in target values
     y_df = pd.read_csv(f'output/Y_{year}.csv')
@@ -68,7 +70,16 @@ def get_data():
 
 
 def save_gt_vs_prediction(model, data_iter, fname):
-    ground_truth = torch.stack([data.y for data in data_iter])
-    preds = torch.stack([model(data) for data in data_iter]) 
-    prediction_df = pd.DataFrame({"ground_truth": ground_truth.detach().numpy(), "prediction": preds.detach().numpy()})
+    ground_truth = torch.cat([data.y for data in data_iter], axis=0)
+    preds = torch.cat([model(data) for data in data_iter], axis=0) 
+    prediction_df = pd.DataFrame({"ground_truth": ground_truth.detach().numpy()[:,0], "prediction": preds.detach().numpy()[:,0]})
     prediction_df.to_csv(fname)
+
+def preds_file(model_type, epoch):
+    return f"results/preds/{model_type}_{hyperparams['learning_rate']}_{epoch}_out_of_{hyperparams['n_epochs']}.csv" 
+
+def preds_plot_file(model_type, epoch):
+    return f"plots/preds/{model_type}_{hyperparams['learning_rate']}_{epoch}.png"
+
+def loss_file(model_type):
+    return f"results/losses/{model_type}_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}.csv"

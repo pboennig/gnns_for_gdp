@@ -1,3 +1,4 @@
+from numpy.core.fromnumeric import size
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -6,28 +7,29 @@ from hyperparams import hyperparams
 
 sns.set_theme()
 
-def loss_plot(prefix):
-    loss_df = pd.read_csv(f'results/{prefix}_train.csv', index_col=0)
+def loss_plot(model_type):
+    plt.subplots_adjust(top=.8)
+    loss_df = pd.read_csv(loss_file(model_type), index_col=0)
     loss_df = loss_df.melt('epoch', var_name='loss_type', value_name='loss')
-    loss_plot = sns.relplot(data=loss_df, x='epoch', y='loss', hue='loss_type', kind='line').set(title=f"{prefix} training trajectory")
-    loss_plot.fig.savefig(f'plots/{prefix}_loss.png', dpi=400)
+    loss_plot = sns.relplot(data=loss_df, x='epoch', y='loss', hue='loss_type', kind='line').set(title=f"{model_type} training trajectory")
+    plt.yscale('log')
+    loss_plot.fig.savefig(f'plots/{model_type}_loss.png', dpi=400)
     plt.close(plt.gcf())
 
-def pred_plot(input_csv, title, out_file, bounding_scaling_factor=.15):
+def pred_plot(preds_df, title, out_file, max_x, max_y):
     print(f"Making rediction plot at {out_file}...", end='')
-    preds_df = pd.read_csv(input_csv)
     # make limits nicely surround points
-    max_val = preds_df[['ground_truth', 'prediction']].max().values.max() * (1 + bounding_scaling_factor)
-    print(max_val, end="")
-    lim = (0, max_val)
-    preds_plot = sns.relplot(data=preds_df, x='ground_truth', y='prediction')
-    plt.subplots_adjust(left=0.1, top=0.9) # prevent x-label and title from getting cut off
+    plt.plot([0, max_x], [0, max_x], color='red', zorder=1)
+    plt.scatter(preds_df['ground_truth'], preds_df['prediction'], s=.7, zorder=2)
+    plt.subplots_adjust(left=0.15, top=0.9) # prevent x-label and title from getting cut off
     #preds_plot.set(xscale='log', yscale='log') # large spread in values
-    preds_plot.set(xlabel='actual log_GDP', ylabel='predicted log_GDP') # label axes
-    preds_plot.set(xlim=lim, ylim=lim) # limits must be same to match intution that y=x is correct
-    preds_plot.set(title=title)
+    plt.xlabel('actual log_GDP')
+    plt.ylabel('predicted log_GDP') # label axes
+    plt.xlim((0, max_x))
+    plt.ylim((0, max_y))
+    plt.title(title)
     #plt.tight_layout()
-    preds_plot.fig.savefig(out_file, dpi=400)
+    plt.savefig(out_file, dpi=400)
     plt.close(plt.gcf())
     print("done!")
 
@@ -39,9 +41,9 @@ def hyperparams_plot(model_type):
     sweep_plot.fig.savefig(f'plots/{model_type}_sweep.png', dpi=400)
     plt.close(plt.gcf())
 
-def compare_baseline_to_model(baseline_csv, model_csv):
-    baseline_loss = pd.read_csv(baseline_csv, index_col=0)
-    model_loss = pd.read_csv(model_csv, index_col=0)
+def compare_baseline_to_model():
+    baseline_loss = pd.read_csv(loss_file('baseline'), index_col=0)
+    model_loss = pd.read_csv(loss_file('model'), index_col=0)
     new_df = baseline_loss[['epoch', 'val']]
     new_df['model_val'] = model_loss['val']
     loss_df = pd.melt(new_df, id_vars=['epoch'], value_vars=['val','model_val'], var_name='model type', value_name='validation MSE')
@@ -53,18 +55,22 @@ def compare_baseline_to_model(baseline_csv, model_csv):
     loss_plot.fig.savefig(f'plots/comparison_loss.png', dpi=400)
 
 
-'''
-compare_baseline_to_model(f"results/baseline_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}_train.csv",\
-    f"results/model_{hyperparams['learning_rate']}_{hyperparams['n_epochs']}_train.csv")
-'''
+compare_baseline_to_model()
 
 for model_type in ['baseline', 'model']:
-    for e in range(0, hyperparams['n_epochs'], hyperparams['save_model_interval']):
-        pred_plot(f"results/{model_type}_{hyperparams['learning_rate']}_{e}_out_of_{hyperparams['n_epochs']}_prediction.csv",\
-        f"{model_type} prediction after {e} epochs",\
-        f"plots/{model_type}_{hyperparams['n_epochs']}_{e}.png")
-    pred_plot(f"results/{model_type}_{hyperparams['learning_rate']}_prediction.csv",\
-        f"{model_type} prediction after {hyperparams['n_epochs']} epochs", f"plots/{model_type}_{hyperparams['learning_rate']}.png")
+    #epoch_range = range(0, hyperparams['n_epochs'] + 1, hyperparams['save_model_interval'])
+    epoch_range = range(0, hyperparams['n_epochs'] + 1, hyperparams['save_model_interval'])
+    dfs = [(e, pd.read_csv(preds_file(model_type, e), index_col=0)) for e in epoch_range]
+    max_y = max([df[['prediction']].max().values.max() for _, df in dfs])
+    max_x = max([df[['ground_truth']].max().values.max() for _, df in dfs])
+    max_y *= 1.1 # don't cut off values
+    max_x *= 1.1 # don't cut off values
+    for e, df in dfs:
+        pred_plot(df, f"{model_type} on test data after {e} epochs", preds_plot_file(model_type, e), max_x, max_y)
+
+    loss_plot(model_type)
+
+    
 
 
 
