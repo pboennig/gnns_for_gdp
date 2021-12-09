@@ -3,6 +3,6 @@ hyperparams = {
     'save_loss_interval' : 10, 
     'print_interval' : 50,
     'save_model_interval' : 250,
-    'n_epochs' : 1500,
+    'n_epochs' : 2000,
     'learning_rate' : 0.01
 }
