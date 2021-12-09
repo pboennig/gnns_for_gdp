@@ -10,6 +10,10 @@ Predicting GDP using graph neural networks on trade data
   - Create the environment ```gdp-env``` with ```conda create --name gdp-env```
 3. Install necessary dependencies:
   - ``` pip install -r requirements.txt ```
+  - Installing PyTorch and PyTorch Geometric can sometimes be a pain. If you run into trouble installing them from the requirements.txt, just install them manually:
+    - ```pip install torch torchvision torchaudio``` OR ```conda install pytorch torchvision torchaudio -c pytorch```
+    -  ```pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.10.0+cpu.html``` OR ```conda install pyg -c pyg -c conda-forge```
+  - The rest of the packages should install without any problem (they are mostly likely already included in your Python distribution anyway)
 
 ### Running Models
 1. Navigate to your local copy of this repository (```cd gnns_for_gdp```)
