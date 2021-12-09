@@ -53,7 +53,6 @@ def compare_baseline_to_model():
     plt.legend(loc='upper right', title='model type')
     plt.ylabel('log validation MSE')
     plt.title('Edge features improve performance')
-    plt.tight_layout()
     plt.savefig(f'plots/comparison_loss.png', dpi=400)
 
 # Now, make the plots!
