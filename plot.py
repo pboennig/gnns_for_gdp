@@ -7,6 +7,8 @@ from hyperparams import hyperparams
 sns.set_theme()
 
 def loss_plot(prefix):
+    """ Plots the loss for a particular model as it is trained, validated, or tested """
+
     loss_df = pd.read_csv(f'results/{prefix}_train.csv', index_col=0)
     loss_df = loss_df.melt('epoch', var_name='loss_type', value_name='loss')
     loss_plot = sns.relplot(data=loss_df, x='epoch', y='loss', hue='loss_type', kind='line').set(title=f"{prefix} training trajectory")
@@ -14,6 +16,8 @@ def loss_plot(prefix):
     plt.close(plt.gcf())
 
 def pred_plot(input_csv, title, out_file, bounding_scaling_factor=.15):
+    """ Plots the predictions for a particular model as it is trained, validated, or tested """
+
     print(f"Making rediction plot at {out_file}...", end='')
     preds_df = pd.read_csv(input_csv)
     # make limits nicely surround points
@@ -32,6 +36,11 @@ def pred_plot(input_csv, title, out_file, bounding_scaling_factor=.15):
     print("done!")
 
 def hyperparams_plot(model_type):
+    """
+    Plots the loss of a model given a particular set of hyperparameters.
+    Useful for validation.
+    """
+
     sweep_df = pd.read_csv(f'results/{model_type}_hyperparams.csv', index_col=0)
     sweep_plot = sns.relplot(data=sweep_df, x='lr', y='val_loss')
     sweep_plot.set(title=f"{model_type} hyperparameter sweep")
@@ -40,6 +49,11 @@ def hyperparams_plot(model_type):
     plt.close(plt.gcf())
 
 def compare_baseline_to_model(baseline_csv, model_csv):
+    """
+    Plots the loss of GATs when using edge features (model) and when not
+    using edge features (baseline).
+    """
+
     baseline_loss = pd.read_csv(baseline_csv, index_col=0)
     model_loss = pd.read_csv(model_csv, index_col=0)
     new_df = baseline_loss[['epoch', 'val']]
@@ -64,7 +78,3 @@ for model_type in ['baseline', 'model']:
     pred_plot(f"results/{model_type}_{hyperparams['learning_rate']}_prediction.csv",\
         f"{model_type} prediction after {hyperparams['n_epochs']} epochs", f"plots/{model_type}_{hyperparams['learning_rate']}.png")
 '''
-
-
-
-
