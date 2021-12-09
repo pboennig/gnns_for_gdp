@@ -1,7 +1,32 @@
 # gnns_for_gdp
 Predicting GDP using graph neural networks on trade data
 
-## Repo structure
+## Instructions
+
+### Setup
+1. Clone this repository with
+  - ```git clone https://github.com/pboennig/gnns_for_gdp.git```
+2. Install [Anaconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) if preferred
+  - Create the environment ```gdp-env``` with ```conda create --name gdp-env```
+3. Install necessary dependencies:
+  - ``` pip install -r requirements.txt ```
+  - Installing PyTorch and PyTorch Geometric can sometimes be a pain. If you run into trouble installing them from the requirements.txt, just install them manually:
+    - ```pip install torch torchvision torchaudio``` OR ```conda install pytorch torchvision torchaudio -c pytorch```
+    -  ```pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.10.0+cpu.html``` OR ```conda install pyg -c pyg -c conda-forge```
+  - The rest of the packages should install without any problem (they are mostly likely already included in your Python distribution anyway)
+
+### Running Models
+1. Navigate to your local copy of this repository (```cd gnns_for_gdp```)
+2. Load in and pre-process the BACI and World Bank datasets
+  - ```python create_year_file.py```
+  - This step will take some time due to the sheer amount of data, but you'll be able to view the script's progress.
+3. Create and run the two GATs
+  - ```python run.py```
+  - This step will also take some time. Neural network go brrrr...
+4. Plot the loss and predictions of our two models
+  - ```python plot.py```
+
+## Structure of Repository
 - output/
   - Contains data for training, validating, and testing model
 - results/
