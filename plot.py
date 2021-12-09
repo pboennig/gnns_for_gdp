@@ -47,15 +47,14 @@ def pred_plot(preds_df, title, out_file, max_x, max_y):
 def compare_baseline_to_model():
     baseline_loss = pd.read_csv(loss_file('baseline'), index_col=0)
     model_loss = pd.read_csv(loss_file('model'), index_col=0)
-    new_df = baseline_loss[['epoch', 'val']]
-    new_df['model_val'] = model_loss['val']
-    loss_df = pd.melt(new_df, id_vars=['epoch'], value_vars=['val','model_val'], var_name='model type', value_name='validation MSE')
-    new_names = {'val': 'baseline', 'model_val': 'model'}
-    loss_df['model type'] = loss_df['model type'].map(new_names)
-    loss_plot = sns.relplot(data=loss_df, x='epoch', y='validation MSE', hue='model type', kind='line').set(title=f"Edge features improve performance")
-    loss_plot.set(yscale='log')
+    plt.yscale('log')
+    plt.plot(baseline_loss['epoch'], baseline_loss['val'], '-r', label='baseline')
+    plt.plot(model_loss['epoch'], model_loss['val'], '-b', label='model')
+    plt.legend(loc='upper right', title='model type')
+    plt.ylabel('log validation MSE')
+    plt.title('Edge features improve performance')
     plt.tight_layout()
-    loss_plot.fig.savefig(f'plots/comparison_loss.png', dpi=400)
+    plt.savefig(f'plots/comparison_loss.png', dpi=400)
 
 # Now, make the plots!
 compare_baseline_to_model()
