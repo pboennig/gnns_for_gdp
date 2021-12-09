@@ -52,6 +52,7 @@ def compare_baseline_to_model():
     plt.plot(model_loss['epoch'], model_loss['val'], '-b', label='model')
     plt.legend(loc='upper right', title='model type')
     plt.ylabel('log validation MSE')
+    plt.xlabel('epoch')
     plt.title('Edge features improve performance')
     plt.savefig(f'plots/comparison_loss.png', dpi=400)
 
