@@ -23,20 +23,23 @@ def loss_plot(model_type):
     plt.savefig(f'plots/{model_type}_loss.png', dpi=400)
     plt.close(plt.gcf())
 
-def pred_plot(preds_df, title, out_file, max_x, max_y):
+def pred_plot(preds_df, title, out_file, max_x, max_y, square=True):
     '''
     Given a DataFrame that has ground truth and predicted values, plot a scatter
     of true vs. predicted values. Force scaling via max_x and max_y s.t. we have
     a series of plots with the same axes. Also plot line showing a hypothetical perfect
     model's prediction.
     '''
-    print(f"Making rediction plot at {out_file}...", end='')
+    print(f"Making prediction plot at {out_file}...", end='')
     plt.yscale('linear') # re-set to linear axis (data is already log-ed)
     plt.plot([0, max_x], [0, max_x], color='red', zorder=1) # place behind points
     plt.scatter(preds_df['ground_truth'], preds_df['prediction'], s=.7, zorder=2) # place in front of line
     plt.subplots_adjust(left=0.15, top=0.9) # prevent x-label and title from getting cut off
     plt.xlabel('actual log_GDP')
     plt.ylabel('predicted log_GDP') # label axes
+    if square:
+        max_x = max(max_x, max_y)
+        max_y = max_x
     plt.xlim((0, max_x))
     plt.ylim((0, max_y))
     plt.title(title)
@@ -60,17 +63,17 @@ def compare_baseline_to_model():
 compare_baseline_to_model()
 for model_type in ['baseline', 'model']:
     epoch_range = range(0, hyperparams['n_epochs'] + 1, hyperparams['save_model_interval'])
-
     # read in all the prediction files
-    dfs = [(e, pd.read_csv(preds_file(model_type, e), index_col=0)) for e in epoch_range]
+    for e in epoch_range:
+        if e == 1500:
+            continue  # accidentally deleted this one and don't want to run model again 
+        print(e)
+        df = pd.read_csv(preds_file(model_type, e), index_col=0)
+        max_y = df[['prediction']].max().values.max()
+        max_x = df[['ground_truth']].max().values.max() 
 
-    # get limits such that every model's predictions < max_y and every model's ground_truth < max_x
-    max_y = max([df[['prediction']].max().values.max() for _, df in dfs])
-    max_x = max([df[['ground_truth']].max().values.max() for _, df in dfs])
-
-    # give some breathing room so that axes don't cut off points
-    max_y *= 1.05
-    max_x *= 1.05
-    for e, df in dfs:
+        # give some breathing room so that axes don't cut off points
+        max_y *= 1.05
+        max_x *= 1.05
         pred_plot(df, f"{model_type} on test data after {e} epochs", preds_plot_file(model_type, e), max_x, max_y)
     loss_plot(model_type)
