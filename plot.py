@@ -34,6 +34,11 @@ def pred_plot(preds_df, title, out_file, max_x, max_y):
     print("done!")
 
 def hyperparams_plot(model_type):
+    """
+    Plots the loss of a model given a particular set of hyperparameters.
+    Useful for validation.
+    """
+
     sweep_df = pd.read_csv(f'results/{model_type}_hyperparams.csv', index_col=0)
     sweep_plot = sns.relplot(data=sweep_df, x='lr', y='val_loss')
     sweep_plot.set(title=f"{model_type} hyperparameter sweep")
@@ -58,7 +63,6 @@ def compare_baseline_to_model():
 compare_baseline_to_model()
 
 for model_type in ['baseline', 'model']:
-    #epoch_range = range(0, hyperparams['n_epochs'] + 1, hyperparams['save_model_interval'])
     epoch_range = range(0, hyperparams['n_epochs'] + 1, hyperparams['save_model_interval'])
     dfs = [(e, pd.read_csv(preds_file(model_type, e), index_col=0)) for e in epoch_range]
     max_y = max([df[['prediction']].max().values.max() for _, df in dfs])

@@ -18,9 +18,10 @@ EDGE_FEATURES = ['f'+str(i) for i in range(NUM_EDGE_FEATURES)]
 
 def create_data(year):
     '''
-    For given year, pull in node features, edge features, and edge index and 
+    For given year, pull in node features, edge features, and edge index and
     save in a PyG Data object.
     '''
+    
     assert(year in range(FIRST_YEAR, LAST_YEAR + 1))
     edges = pd.read_csv(f'output/X_EDGE_{year}.csv')
 
@@ -59,8 +60,9 @@ def evaluate_model(model, data_iter):
 def get_data():
     '''
     Generate data_lists for train, val, and test. These lists can be either loaded into data_loaders
-    or indexed directly. 
+    or indexed directly.
     '''
+
     data_list = [create_data(year) for year in range(FIRST_YEAR, LAST_YEAR)]
     random.shuffle(data_list)
     data_train = data_list[:NUM_TRAIN]
