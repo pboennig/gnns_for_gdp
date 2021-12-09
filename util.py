@@ -72,6 +72,10 @@ def get_data():
 
 
 def save_gt_vs_prediction(model, data_iter, fname):
+    '''
+    Given a model and a dataset, save a csv to fname that stores the ground truth
+    value and the predicted values in two columns. Used for comparing
+    '''
     ground_truth = torch.cat([data.y for data in data_iter], axis=0)
     preds = torch.cat([model(data) for data in data_iter], axis=0) 
     prediction_df = pd.DataFrame({"ground_truth": ground_truth.detach().numpy()[:,0], "prediction": preds.detach().numpy()[:,0]})
